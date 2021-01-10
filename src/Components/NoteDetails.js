@@ -66,7 +66,8 @@ const NoteDetails = ({ selectedId, notesData }) => {
             }
             newFilteredNotesList = notesEditor.notesData.items.filter(x => x.id !== selectedId)
         }
-        const tempNotesData = (undoLength ? ({ ...notesEditor.notesData, items: [...newFilteredNotesList, newSelectedSingleNote] }) : notesEditor.originalItems)
+        const tempNotesData = (
+            undoLength ? ({ ...notesEditor.notesData, items: [...newFilteredNotesList, newSelectedSingleNote] }) : localStorage.getItem('lists') ? JSON.parse(localStorage.getItem('lists')) : notesEditor.originalItems)
 
         setNotesEditor({
             ...notesEditor,
