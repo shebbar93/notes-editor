@@ -20,7 +20,7 @@ const Toast = props => {
             setTimeout(() => {
                 removeNode();
                 props.hideToast();
-            }, 3000);
+            }, 1000);
         } else {
             removeNode();
         }
