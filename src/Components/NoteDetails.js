@@ -23,13 +23,13 @@ const NoteDetails = ({ selectedId, notesData }) => {
             undoArray: [],
             redoArray: []
         })
-        showToast()
-        setToastMessage('Saved data successfully.')
+        showToast('Saved data successfully.')
     }
     const onCancelHandler = () => {
         if (window.confirm('Are you sure you want to restore to original default values.?')) {
             const unSelectedNotes = items.filter(x => x.id !== selectedId)
-            const originalNote = notesEditor.originalItems.items.filter(x => x.id === selectedId)
+            const originalNoteItems = JSON.parse(JSON.stringify(notesEditor.originalItems.items));
+            const originalNote = originalNoteItems.filter(x => x.id === selectedId)
             if (localStorage.getItem('lists')) {
                 localStorage.setItem('lists', JSON.stringify({
                     ...notesEditor.notesData,
@@ -46,8 +46,7 @@ const NoteDetails = ({ selectedId, notesData }) => {
                 undoArray: [],
                 redoArray: []
             })
-            showToast()
-            setToastMessage('Data restored successfully.')
+            showToast('Data restored successfully.')
         }
     }
     const onUndoHandler = () => {
@@ -67,7 +66,7 @@ const NoteDetails = ({ selectedId, notesData }) => {
             newFilteredNotesList = notesEditor.notesData.items.filter(x => x.id !== selectedId)
         }
         const tempNotesData = (
-            undoLength ? ({ ...notesEditor.notesData, items: [...newFilteredNotesList, newSelectedSingleNote] }) : localStorage.getItem('lists') ? JSON.parse(localStorage.getItem('lists')) : notesEditor.originalItems)
+            undoLength ? ({ ...notesEditor.notesData, items: [...newFilteredNotesList, newSelectedSingleNote] }) : localStorage.getItem('lists') ? JSON.parse(localStorage.getItem('lists')) : JSON.parse(JSON.stringify(notesEditor.originalItems)))
 
         setNotesEditor({
             ...notesEditor,
@@ -92,7 +91,7 @@ const NoteDetails = ({ selectedId, notesData }) => {
 
             newFilteredNotesList = notesEditor.notesData.items.filter(x => x.id !== selectedId)
         }
-        const tempNotesData = (redoLength ? ({ ...notesEditor.notesData, items: [...newFilteredNotesList, newSelectedSingleNote] }) : notesEditor.originalItems)
+        const tempNotesData = (redoLength ? ({ ...notesEditor.notesData, items: [...newFilteredNotesList, newSelectedSingleNote] }) : JSON.parse(JSON.stringify(notesEditor.originalItems)))
 
         setNotesEditor({
             ...notesEditor,
@@ -101,8 +100,9 @@ const NoteDetails = ({ selectedId, notesData }) => {
         })
         redoLength--;
     }
-    const showToast = () => {
+    const showToast = (msg) => {
         setShow(true);
+        setToastMessage(msg)
     };
 
     const hideToast = () => {
