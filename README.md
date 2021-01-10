@@ -24,8 +24,8 @@ Comments :
 1. There are 5 notes list in this application loaded from src/Data/NotesData.js.
 2. Each list of note has some fields which are editable.
 3. Each note supports following functionality.
-    → Undo : Reverts the changes made to the field of the selected note.
-    → Redo : Reverts the changes made after Undo.
-    → Save : Saves the fields value of the selected note and clears undo/redo history.
-    → Cancel : Sets the fields to the default value for the selected note that is available in the src/Data/NotesData. js.
+    *  Undo : Reverts the changes made to the field of the selected note.
+    * Redo : Reverts the changes made after Undo.
+    * Save : Saves the fields value of the selected note and clears undo/redo history.
+    * Cancel : Sets the fields to the default value for the selected note that is available in the src/Data/NotesData. js.
 4. Navigating between the notes will clear the unsaved changes & undo/redo history.
