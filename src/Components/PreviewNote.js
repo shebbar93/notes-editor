@@ -1,40 +1,81 @@
-import React from 'react'
-import { useLocation } from '../Context/LocationContext'
+import React, { useContext } from 'react'
+import { LocationContext } from '../Context/LocationContext'
+import types from '../Context/types'
 
 const PreviewNote = ({ note }) => {
 
     const id = note.id;
-    const [notesEditor, setNotesEditor] = useLocation()
-    const isActive = id === notesEditor.selectedId;
+    //const [notesEditor, setNotesEditor] = useLocation()
+    //const isActive = id === notesEditor.selectedId;
+
+    const locationContext = useContext(LocationContext)
+    const { selectedId, dispatch, undoArray, redoArray, originalItems } = locationContext
+    const isActive = id === selectedId;
 
     const clickHandler = () => {
-        if (notesEditor.undoArray.length || notesEditor.redoArray.length) {
+        if (undoArray.length || redoArray.length) {
             if (window.confirm('Unsaved changes including Undo/Redo history will be cleared for this note.')) {
-                if (localStorage.getItem('lists')) {
-                    setNotesEditor({
-                        ...notesEditor,
-                        selectedId: id,
-                        notesData: JSON.parse(localStorage.getItem('lists')),
-                        undoArray: [],
-                        redoArray: []
-                    })
-                } else {
-                    setNotesEditor({
-                        ...notesEditor,
-                        notesData: JSON.parse(JSON.stringify(notesEditor.originalItems)),
-                        selectedId: id,
-                        undoArray: [],
-                        redoArray: []
+                // if (localStorage.getItem('lists')) {
+                // setNotesEditor({
+                //     ...notesEditor,
+                //     selectedId: id,
+                //     notesData: JSON.parse(localStorage.getItem('lists')),
+                //     undoArray: [],
+                //     redoArray: []
+                // })
+                // } else {
+                // setNotesEditor({
+                //     ...notesEditor,
+                //     notesData: JSON.parse(JSON.stringify(notesEditor.originalItems)),
+                //     selectedId: id,
+                //     undoArray: [],
+                //     redoArray: []
 
-                    })
-                }
+                // })
+                // }
+                dispatch({
+                    type: types.SET_SELECTED_NOTE,
+                    payload: {
+                        selectedId: id,
+                        notesData: localStorage.getItem('lists') ? JSON.parse(localStorage.getItem('lists')) : JSON.parse(JSON.stringify(originalItems))
+                    }
+                })
             }
         } else {
-            setNotesEditor({
-                ...notesEditor,
-                selectedId: id
+            dispatch({
+                type: types.SET_SELECTED_NOTE,
+                payload: {
+                    selectedId: id
+                }
             })
         }
+        // if (notesEditor.undoArray.length || notesEditor.redoArray.length) {
+        //     if (window.confirm('Unsaved changes including Undo/Redo history will be cleared for this note.')) {
+        //         if (localStorage.getItem('lists')) {
+        //             setNotesEditor({
+        //                 ...notesEditor,
+        //                 selectedId: id,
+        //                 notesData: JSON.parse(localStorage.getItem('lists')),
+        //                 undoArray: [],
+        //                 redoArray: []
+        //             })
+        //         } else {
+        //             setNotesEditor({
+        //                 ...notesEditor,
+        //                 notesData: JSON.parse(JSON.stringify(notesEditor.originalItems)),
+        //                 selectedId: id,
+        //                 undoArray: [],
+        //                 redoArray: []
+
+        //             })
+        //         }
+        //     }
+        // } else {
+        //     setNotesEditor({
+        //         ...notesEditor,
+        //         selectedId: id
+        //     })
+        // }
 
     }
     return (

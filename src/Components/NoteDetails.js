@@ -1,12 +1,16 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import GenerateField from './GenerateFields'
-import { useLocation } from '../Context/LocationContext';
+import { LocationContext } from '../Context/LocationContext';
 import clone from '../CustomHook/Clone'
 import Toast from './Toast'
+import types from '../Context/types'
 
-const NoteDetails = ({ selectedId, notesData }) => {
-    const [notesEditor, setNotesEditor] = useLocation();
-    let { items } = notesEditor.notesData;
+const NoteDetails = () => {
+
+    // const [notesEditor, setNotesEditor] = useLocation();
+    const locationContext = useContext(LocationContext)
+    const { notesData, selectedId, dispatch, undoArray, redoArray, originalItems } = locationContext
+    let { items } = notesData;
     let note = items.filter(x => x.id === selectedId);
     let { name } = note.length && note[0]
     const [show, setShow] = useState(false);
@@ -15,37 +19,49 @@ const NoteDetails = ({ selectedId, notesData }) => {
     const onSaveHandler = () => {
         const unSelectedNotes = items.filter(x => x.id !== selectedId)
         localStorage.setItem('lists', JSON.stringify({
-            ...notesEditor.notesData,
+            ...notesData,
             items: [...note, ...unSelectedNotes]
         }))
-        setNotesEditor({
-            ...notesEditor,
-            undoArray: [],
-            redoArray: []
+        // setNotesEditor({
+        //     ...notesEditor,
+        //     undoArray: [],
+        //     redoArray: []
+        // })
+        dispatch({
+            type: types.SAVE_NOTE_HANDLER,
+            payload: notesData
         })
         showToast('Saved data successfully.')
     }
     const onCancelHandler = () => {
         if (window.confirm('Are you sure you want to restore to original default values.?')) {
             const unSelectedNotes = items.filter(x => x.id !== selectedId)
-            const originalNoteItems = JSON.parse(JSON.stringify(notesEditor.originalItems.items));
+            const originalNoteItems = JSON.parse(JSON.stringify(originalItems.items));
             const originalNote = originalNoteItems.filter(x => x.id === selectedId)
             if (localStorage.getItem('lists')) {
                 localStorage.setItem('lists', JSON.stringify({
-                    ...notesEditor.notesData,
+                    ...notesData,
                     items: [...originalNote, ...unSelectedNotes]
                 }))
             }
-            
-            setNotesEditor({
-                ...notesEditor,
-                notesData: {
-                    ...notesEditor.notesData,
-                    items: [...originalNote, ...unSelectedNotes]
-                },
-                undoArray: [],
-                redoArray: []
+            dispatch({
+                type: types.CANCEL_NOTE_HANDLER,
+                payload: {
+                    notesData: {
+                        ...notesData,
+                        items: [...originalNote, ...unSelectedNotes]
+                    }
+                }
             })
+            // setNotesEditor({
+            //     ...notesEditor,
+            //     notesData: {
+            //         ...notesEditor.notesData,
+            //         items: [...originalNote, ...unSelectedNotes]
+            //     },
+            //     undoArray: [],
+            //     redoArray: []
+            // })
             showToast('Data restored successfully.')
         }
     }
@@ -53,50 +69,64 @@ const NoteDetails = ({ selectedId, notesData }) => {
         let tempDataToRedoClone = []
         let newSelectedSingleNote = []
         let newFilteredNotesList = []
-        let undoLength = notesEditor.undoArray.length;
+        let undoLength = undoArray.length;
         if (undoLength) {
-            const tempDataToRedo = notesEditor.undoArray[undoLength - 1]
+            const tempDataToRedo = undoArray[undoLength - 1]
             tempDataToRedoClone = clone(tempDataToRedo)
-            notesEditor.undoArray.splice(-1, 1)
+            undoArray.splice(-1, 1)
             undoLength--;
             newSelectedSingleNote = {
                 ...note[0],
-                fields: notesEditor.undoArray[undoLength - 1]
+                fields: undoArray[undoLength - 1]
             }
-            newFilteredNotesList = notesEditor.notesData.items.filter(x => x.id !== selectedId)
+            newFilteredNotesList = notesData.items.filter(x => x.id !== selectedId)
         }
         const tempNotesData = (
-            undoLength ? ({ ...notesEditor.notesData, items: [...newFilteredNotesList, newSelectedSingleNote] }) : localStorage.getItem('lists') ? JSON.parse(localStorage.getItem('lists')) : JSON.parse(JSON.stringify(notesEditor.originalItems)))
+            undoLength ? ({ ...notesData, items: [...newFilteredNotesList, newSelectedSingleNote] }) : localStorage.getItem('lists') ? JSON.parse(localStorage.getItem('lists')) : JSON.parse(JSON.stringify(originalItems)))
 
-        setNotesEditor({
-            ...notesEditor,
-            redoArray: [...notesEditor.redoArray, tempDataToRedoClone],
-            notesData: tempNotesData
+        dispatch({
+            type: types.UNDO_HANDLER,
+            payload: {
+                redoArray: [...redoArray, tempDataToRedoClone],
+                notesData: tempNotesData
+            }
         })
+        // setNotesEditor({
+        //     ...notesEditor,
+        //     redoArray: [...notesEditor.redoArray, tempDataToRedoClone],
+        //     notesData: tempNotesData
+        // })
     }
 
     const onRedoHandler = () => {
         let tempDataToUndoClone = []
-        let redoLength = notesEditor.redoArray.length;
+        let redoLength = redoArray.length;
         let newSelectedSingleNote = [];
         let newFilteredNotesList = []
         if (redoLength) {
-            const tempDataToUndo = notesEditor.redoArray[redoLength - 1]
+            const tempDataToUndo = redoArray[redoLength - 1]
             tempDataToUndoClone = clone(tempDataToUndo)
-            notesEditor.redoArray.splice(-1, 1)
+            redoArray.splice(-1, 1)
             newSelectedSingleNote = {
                 ...note[0],
                 fields: tempDataToUndoClone
             }
 
-            newFilteredNotesList = notesEditor.notesData.items.filter(x => x.id !== selectedId)
+            newFilteredNotesList = notesData.items.filter(x => x.id !== selectedId)
         }
-        const tempNotesData = (redoLength ? ({ ...notesEditor.notesData, items: [...newFilteredNotesList, newSelectedSingleNote] }) : JSON.parse(JSON.stringify(notesEditor.originalItems)))
+        const tempNotesData = (redoLength ? ({ ...notesData, items: [...newFilteredNotesList, newSelectedSingleNote] }) : JSON.parse(JSON.stringify(originalItems)))
 
-        setNotesEditor({
-            ...notesEditor,
-            undoArray: [...notesEditor.undoArray, tempDataToUndoClone],
-            notesData: tempNotesData
+        // setNotesEditor({
+        //     ...notesEditor,
+        //     undoArray: [...notesEditor.undoArray, tempDataToUndoClone],
+        //     notesData: tempNotesData
+        // })
+        dispatch({
+            type: types.REDO_HANDLER,
+            payload: {
+                undoArray: [...undoArray, tempDataToUndoClone],
+                notesData: tempNotesData
+            }
         })
         redoLength--;
     }
@@ -119,10 +149,10 @@ const NoteDetails = ({ selectedId, notesData }) => {
                         <h1 className="note-title">{name}</h1>
                         {/* <div className="note-menu"> */}
                         <div>
-                            <button className='edit-button edit-button--outline' onClick={onRedoHandler} disabled={notesEditor.redoArray.length === 0}>
+                            <button className='edit-button edit-button--outline' onClick={onRedoHandler} disabled={redoArray.length === 0}>
                                 Redo
                             </button>
-                            <button className='edit-button edit-button--outline' onClick={onUndoHandler} disabled={notesEditor.undoArray.length === 0}>
+                            <button className='edit-button edit-button--outline' onClick={onUndoHandler} disabled={undoArray.length === 0}>
                                 Undo
                             </button>
                             <button className='edit-button edit-button--outline' onClick={onSaveHandler}>

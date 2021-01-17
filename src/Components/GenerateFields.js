@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react'
-import { useLocation } from '../Context/LocationContext'
+import React, { useState, useEffect, useContext } from 'react'
+import { LocationContext } from '../Context/LocationContext'
 import clone from '../CustomHook/Clone'
+import types from '../Context/types'
 
 const GenerateFields = ({ note }) => {
     const [fields, setFields] = useState(null)
-    const [notesEditor, setNotesEditor] = useLocation();
+    const locationContext = useContext(LocationContext)
+    const { dispatch, undoArray } = locationContext
+    // const [notesEditor, setNotesEditor] = useLocation();
     const sameFieldValues = {}
 
     useEffect(() => {
@@ -18,9 +21,15 @@ const GenerateFields = ({ note }) => {
     const onBlurHandler = (e, id, type) => {
         if (sameFieldValues[id] !== (type === 'toggle' ? e.target.checked : e.target.value)) {
             const fieldsCopy = clone(fields)
-            setNotesEditor({
-                ...notesEditor,
-                undoArray: [...notesEditor.undoArray, fieldsCopy],
+            // setNotesEditor({
+            //     ...notesEditor,
+            //     undoArray: [...notesEditor.undoArray, fieldsCopy],
+            // })
+            dispatch({
+                type: types.FIELD_BLUR_HANDLER,
+                payload: {
+                    undoArray: [...undoArray, fieldsCopy],
+                }
             })
 
         }
