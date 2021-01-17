@@ -9,10 +9,11 @@ Clone the repo:
 ### `git clone https://github.com/shebbar93/notes-editor.git`
 
 Install NPM modules:
+In the project directory, you can run:
 
 ### `npm install`
 
-In the project directory, you can run:
+Again, in the project directory, you can run:
 
 ### `npm start`
 
